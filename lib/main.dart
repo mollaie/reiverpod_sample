@@ -8,11 +8,22 @@ void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
+final textEditingControllerProvider = Provider<TextEditingController>((ref) {
+  return TextEditingController();
+});
+
+final focusNodeProvider = Provider<FocusNode>((ref) {
+  return FocusNode();
+});
+
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final textController = ref.watch(textEditingControllerProvider);
+    final focusNode = ref.watch(focusNodeProvider);
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -20,10 +31,21 @@ class MyApp extends ConsumerWidget {
         ),
         body: Column(
           children: [
-            TextField(
-              onSubmitted: (value) {
-                ref.read(taskListProvider.notifier).addTask(value);
-              },
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: textController,
+                focusNode: focusNode,
+                onSubmitted: (value) {
+                  ref.read(taskListProvider.notifier).addTask(value);
+                  textController.clear();
+                  focusNode.requestFocus();
+                },
+                decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.all(8.0),
+                    hintText: "Enter your task",
+                    hintStyle: TextStyle(color: Colors.pink)),
+              ),
             ),
             Consumer(
               builder: (context, ref, child) {
@@ -66,12 +88,18 @@ class MyApp extends ConsumerWidget {
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: TaskFilter.values.map((f) {
-                    return FilterButton(
-                      text: f.toString().split('.').last,
-                      onPressed: () {
-                        ref.read(taskListFilterProvider.notifier).setFilter(f);
-                      },
-                      selected: f == filter,
+                    return SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: FilterButton(
+                        text: f.toString().split('.').last,
+                        onPressed: () {
+                          ref
+                              .read(taskListFilterProvider.notifier)
+                              .setFilter(f);
+                        },
+                        selected: f == filter,
+                      ),
                     );
                   }).toList(),
                 );
@@ -97,10 +125,9 @@ class FilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: selected ? Colors.blue : Colors.grey,
-      ),
+    return FloatingActionButton(
+      backgroundColor: selected ? Colors.blue : Colors.grey,
+      elevation: 2.0,
       onPressed: onPressed,
       child: Text(text),
     );
