@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod_sample/extension.dart';
 import 'package:riverpod_sample/provider.dart';
 
 import 'core.dart';
@@ -97,6 +98,13 @@ class MyApp extends ConsumerWidget {
                           ref
                               .read(taskListFilterProvider.notifier)
                               .setFilter(f);
+                          if (f != TaskFilter.completed) {
+                            context
+                                .showSnackBar("You clicked on ${f.toString()}");
+                          } else {
+                            context.showErrorSnackBar(
+                                "You clicked on ${f.toString()}");
+                          }
                         },
                         selected: f == filter,
                       ),
